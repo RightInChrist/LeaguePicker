@@ -23,6 +23,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="#" id="navPlayers">Players</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="navScores">Scores</a>
+                        </li>
                     </ul>
                 </div>
             </nav>
@@ -40,13 +43,11 @@
                             <li><strong>Setup:</strong>
                                 <ul>
                                     <li>Ensure that all coaches and players are added to the system.</li>
-                                    <li>All data is stored locally in the browser; no data is stored online.</li>
                                 </ul>
                             </li>
                             <li><strong>Evaluation Process:</strong>
                                 <ul>
                                     <li>Each coach evaluates every player by scoring them from 0 to 5 (including decimals).</li>
-                                    <li>Scores are entered anonymously, so scores are not linked to specific coaches.</li>
                                 </ul>
                             </li>
                             <li><strong>Data Entry:</strong>
@@ -57,7 +58,6 @@
                             <li><strong>Generating Team Assignments:</strong>
                                 <ul>
                                     <li>The system will calculate average scores and generate team assignments.</li>
-                                    <li>Review and adjust the assignments as needed.</li>
                                 </ul>
                             </li>
                         </ol>
@@ -68,7 +68,6 @@
                             <li><strong>Evaluating Players:</strong>
                                 <ul>
                                     <li>Score each player from 0 to 5 (including decimals).</li>
-                                    <li>Your scores are anonymous.</li>
                                 </ul>
                             </li>
                             <li><strong>Entering Data:</strong>
@@ -97,41 +96,10 @@
                     </form>
 
                     <h2>Coaches List</h2>
-                    <ul id="coachesList" class="list-group">
-                        <!-- Coaches will be listed here -->
-                    </ul>
-
-                    <h2>Coach Scores</h2>
-                    <div id="coachScores">
-                        <!-- Scores will be displayed here -->
-                    </div>
-
-                    <h2>Edit Coach</h2>
-                    <form id="editCoachForm" class="d-none">
-                        <div class="form-group">
-                            <label for="editCoachName">Edit Coach Name:</label>
-                            <input type="text" id="editCoachName" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-warning">Update Coach</button>
-                    </form>
-                </div>
-
-                <!-- Editable table for players and scores -->
-                <div id="players" class="section d-none">
-                    <h2>Player Evaluation</h2>
-                    <form id="addPlayerForm">
-                        <div class="form-group">
-                            <label for="playerName">Player Name:</label>
-                            <input type="text" id="playerName" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Add Player</button>
-                    </form>
-                    <h2>Players List</h2>
-                    <table class="table" id="playersTable">
+                    <table class="table" id="coachesTable">
                         <thead>
                             <tr>
-                                <th>Player Name</th>
-                                <th>Score</th>
+                                <th>Coach Name</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -140,10 +108,47 @@
                     </table>
                 </div>
 
-                <!-- Miniature tables for team assignments -->
-                <div id="teamAssignments" class="section d-none">
-                    <h2>Team Assignments</h2>
-                    <!-- Team assignment tables will be displayed here -->
+                <!-- Add Player Section -->
+                <div id="players" class="section d-none">
+                    <h2>Add Player</h2>
+                    <form id="addPlayerForm">
+                        <div class="form-group">
+                            <label for="playerName">Player Name:</label>
+                            <input type="text" id="playerName" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Player</button>
+                    </form>
+
+                    <h2>Players List</h2>
+                    <table class="table" id="playersTable">
+                        <thead>
+                            <tr>
+                                <th>Player Name</th>
+                                <th>Average Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Scores Section -->
+                <div id="scores" class="section d-none">
+                    <h2>Scores</h2>
+                    <table class="table" id="scoresTable">
+                        <thead>
+                            <tr>
+                                <th>Player Name</th>
+                                <th>Coach 1</th>
+                                <th>Coach 2</th>
+                                <!-- Add more coach columns as needed -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows will be added here -->
+                        </tbody>
+                    </table>
                 </div>
             </main>
         </div>

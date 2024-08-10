@@ -1,4 +1,7 @@
 $(document).ready(function() {
+    let nextCoachId = 1;
+    let nextPlayerId = 1;
+
     // Load data from local storage on page load
     loadFromLocalStorage();
 
@@ -18,6 +21,10 @@ $(document).ready(function() {
         showSection('players');
     });
 
+    $('#navScores').click(function() {
+        showSection('scores');
+    });
+
     // Function to show the selected section and hide others
     function showSection(sectionId) {
         $('.section').addClass('d-none'); // Hide all sections
@@ -31,90 +38,212 @@ $(document).ready(function() {
         event.preventDefault();
         const coachName = $('#coachName').val().trim();
         if (coachName) {
-            addCoach(coachName);
+            upsertCoach(coachName);
             $('#coachName').val(''); // Clear the input field
-            saveToLocalStorage(); // Save data to local storage
         }
     });
 
-    // Function to add a coach to the list
-    function addCoach(name) {
-        $('#coachesList').append(`
-            <li class="list-group-item">
-                <span class="coach-name">${name}</span>
-                <button class="btn btn-sm btn-warning edit-coach-btn">Edit</button>
-            </li>
-        `);
+    // Function to upsert a coach
+    function upsertCoach(name, id = null) {
+        if (!id) {
+            id = nextCoachId++;
+        }
+        addToCoachesTable(name, id);
+        saveToLocalStorage();
     }
 
-    // Handle editing coach names
-    $('#coachesList').on('click', '.edit-coach-btn', function() {
-        const coachName = $(this).siblings('.coach-name').text();
-        $('#editCoachName').val(coachName);
-        $('#editCoachForm').removeClass('d-none');
-        $(this).closest('li').remove();
-    });
-
-    $('#editCoachForm').submit(function(event) {
-        event.preventDefault();
-        const newName = $('#editCoachName').val().trim();
-        if (newName) {
-            addCoach(newName);
-            $('#editCoachForm').addClass('d-none');
-            saveToLocalStorage(); // Save data to local storage
-        }
-    });
+    function addToCoachesTable(name, id) {
+        $('#coachesTable tbody').append(`
+            <tr data-id=${id}>
+                <td class="coach-name" contenteditable="true">${name}</td>
+            </tr>
+        `);
+    }
 
     // Handle adding players
     $('#addPlayerForm').submit(function(event) {
         event.preventDefault();
         const playerName = $('#playerName').val().trim();
         if (playerName) {
-            addPlayer(playerName);
+            upsertPlayer(playerName);
             $('#playerName').val(''); // Clear the input field
-            saveToLocalStorage(); // Save data to local storage
         }
     });
 
-    // Function to add a player to the table
-    function addPlayer(name, score) {
+    // Function to upsert a player
+    function upsertPlayer(name, id = null) {
+        if (!id) {
+            id = nextPlayerId++;
+        }
+        addToPlayersTable(name, id);
+        saveToLocalStorage();
+    }
+
+    function addToPlayersTable(name, id) {
         $('#playersTable tbody').append(`
-            <tr>
-                <td contenteditable="true" class="player-name">${name}</td>
-                <td contenteditable="true" class="player-score">${score}</td>
+            <tr data-id="${id}">
+                <td class="player-name" contenteditable="true">${name}</td>
+                <td class="average-score">unknown</td>
             </tr>
         `);
     }
 
-    // Handle editing player names
-    $('#playersTable').on('blur', 'td', function() {
-        saveToLocalStorage(); // Save data to local storage on player data change
+    // Handle editing tables
+    $('tbody').on('blur', 'td', function() {
+        console.log('tbody blur');
+        saveToLocalStorage();
     });
 
-    // Function to save data to local storage
-    function saveToLocalStorage() {
+    // Function to update average scores in the players section
+    function updatePlayersSection() {
+        console.log('updatePlayersSection');
+        $('#playersTable tbody tr').each(function() {
+            const playerId = $(this).data('id');
+            const scores = [];
+            $('#scoresTable tbody tr').each(function() {
+                $(this).find('td').each(function() {
+                    if ($(this).data('player-id') === playerId) {
+                        const score = parseFloat($(this).text().trim()) || 0;
+                        scores.push(score);
+                    }
+                });
+            });
+            const averageScore = scores.length ? (scores.reduce((a, b) => a + b) / scores.length).toFixed(2) : 0;
+            $(this).find('.average-score').text(averageScore);
+        });
+    }
+
+    // Function to update the scores section
+    function updateScoresSection() {
+        console.log('updateScoresSection');
         const coaches = [];
-        $('#coachesList .coach-name').each(function() {
-            coaches.push($(this).text());
+        $('#coachesTable tbody tr').each(function() {
+            const name = $(this).find('.coach-name').text().trim();
+            const id = $(this).data('id');
+            coaches.push({ name: name, id: id });
         });
 
         const players = [];
         $('#playersTable tbody tr').each(function() {
-            const playerName = $(this).find('td').eq(0).text().trim();
-            const score = $(this).find('td').eq(1).text().trim();
-            players.push({ name: playerName, score: score });
+            const name = $(this).find('.player-name').text().trim();
+            const id = $(this).data('id');
+            players.push({ name: name, id: id });
         });
 
+    // Update table headers
+    let headersHtml = `<th>Player Name</th>`;
+    coaches.forEach(coach => {
+        headersHtml += `<th>${coach.name}</th>`;
+    });
+    
+    if ($('#scoresTable thead').length === 0) {
+        // Create thead if not exists
+        $('#scoresTable').append(`
+            <thead>
+                <tr>${headersHtml}</tr>
+            </thead>
+            <tbody></tbody>
+        `);
+    } else {
+        // Update existing headers
+        $('#scoresTable thead tr').html(headersHtml);
+    }
+
+    // Update table rows
+    const existingPlayerIds = $('#scoresTable tbody tr').map(function() {
+        return $(this).data('id');
+    }).get();
+
+    players.forEach(player => {
+        let rowInner = `<td class="player-name">${player.name}</td>`;
+        let rowHtml = `<tr data-id="${player.id}">`;
+
+        coaches.forEach(coach => {
+            const score = getScore(player.id, coach.id);
+            rowInner += `<td contenteditable="true" data-coach-id="${coach.id}" data-player-id="${player.id}">${score}</td>`;
+        });
+        rowHtml += rowInner;
+        rowHtml += '</tr>';
+
+        if (existingPlayerIds.includes(player.id)) {
+            // Update existing row
+            $(`#scoresTable tbody tr[data-id="${player.id}"]`).html(rowInner);
+        } else {
+            // Append new row
+            $('#scoresTable tbody').append(rowHtml);
+        }
+    });
+
+    // Remove rows for players no longer in the list
+    $('#scoresTable tbody tr').each(function() {
+        const playerId = $(this).data('id');
+        if (!players.some(player => player.id === playerId)) {
+            $(this).remove();
+        }
+    });
+    }
+
+    // Function to get the score for a given player and coach from localStorage
+    function getScore(playerId, coachId) {
+        const scores = JSON.parse(localStorage.getItem('scores') || '[]');
+        const scoreEntry = scores.find(score => score.playerId === playerId && score.coachId === coachId);
+        return scoreEntry ? scoreEntry.score : '';
+    }
+
+    // Function to save data to local storage
+    function saveToLocalStorage() {
+        const coaches = [];
+        $('#coachesTable tbody tr').each(function() {
+            const name = $(this).find('.coach-name').text().trim();
+            const id = $(this).data('id');
+            coaches.push({ name: name, id: id });
+        });
+
+        const players = [];
+        $('#playersTable tbody tr').each(function() {
+            const name = $(this).find('.player-name').text().trim();
+            const id = $(this).data('id');
+            const averageScore = $(this).find('.average-score').text().trim();
+            players.push({ name: name, id: id, averageScore: averageScore });
+        });
+
+        const scores = [];
+        $('#scoresTable tbody tr').each(function() {
+            $(this).find('td').each(function() {
+                const playerId = $(this).data('player-id');
+                const coachId = $(this).data('coach-id');
+                if (coachId) {
+                    const score = $(this).text().trim();
+                    scores.push({ playerId: playerId, coachId: coachId, score: score });
+                }
+            });
+        });
+
+        console.log('save coaches', coaches);
+        console.log('save players', players);
+        console.log('save scores', scores);
         localStorage.setItem('coaches', JSON.stringify(coaches));
         localStorage.setItem('players', JSON.stringify(players));
+        localStorage.setItem('scores', JSON.stringify(scores));
+        updateSections();
     }
 
     // Function to load data from local storage
     function loadFromLocalStorage() {
         const coaches = JSON.parse(localStorage.getItem('coaches') || '[]');
         const players = JSON.parse(localStorage.getItem('players') || '[]');
+        const scores = JSON.parse(localStorage.getItem('scores') || '[]');
 
-        coaches.forEach(name => addCoach(name));
-        players.forEach(player => addPlayer(player.name, player.score));
+        nextCoachId = coaches.length + 1; // Set nextCoachId based on existing data
+        nextPlayerId = players.length + 1; // Set nextPlayerId based on existing data
+
+        coaches.forEach(coach => addToCoachesTable(coach.name, coach.id));
+        players.forEach(player => addToPlayersTable(player.name, player.id));
+        updateSections();
+    }
+
+    function updateSections() {
+        updateScoresSection();
+        updatePlayersSection();
     }
 });

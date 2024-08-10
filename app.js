@@ -157,18 +157,26 @@ $(document).ready(function() {
         $('#playersTable tbody tr').each(function() {
             const playerId = $(this).data('id');
             const scores = [];
+            
             $('#scoresTable tbody tr').each(function() {
                 $(this).find('td').each(function() {
                     if ($(this).data('player-id') === playerId) {
-                        const score = parseFloat($(this).text().trim()) || 0;
-                        scores.push(score);
+                        const scoreText = $(this).text().trim();
+                        const score = parseFloat(scoreText);
+    
+                        // Only add valid numbers to the scores array
+                        if (!isNaN(score)) {
+                            scores.push(score);
+                        }
                     }
                 });
             });
-            const averageScore = scores.length ? (scores.reduce((a, b) => a + b) / scores.length).toFixed(2) : 0;
+    
+            // Calculate the average score, and if no valid scores, leave it as empty
+            const averageScore = scores.length ? (scores.reduce((a, b) => a + b) / scores.length).toFixed(2) : '';
             $(this).find('.average-score').text(averageScore);
         });
-    }
+    }    
 
     // Function to update the scores section
     function updateScoresSection() {

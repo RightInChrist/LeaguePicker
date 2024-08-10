@@ -310,39 +310,73 @@ $(document).ready(function() {
     }
 
     // Assign teams based on average scores
-    $('#assignTeams').click(function() {
+    $('#assignTeamsNaive').click(function() {
+
+        const coaches = [];
+        $('#coachesTable tbody tr').each(function() {
+            const name = $(this).find('.coach-name').text().trim();
+            const id = $(this).data('id');
+            coaches.push({ name: name, id: id, players: [] });
+        });
+
         const players = [];
         $('#playersTable tbody tr').each(function() {
             const name = $(this).find('.player-name').text().trim();
-            const averageScore = parseFloat($(this).find('.average-score').text().trim()) || 0;
-            players.push({ name: name, averageScore: averageScore });
+            const id = $(this).data('id');
+            const averageScore = $(this).find('.average-score').text().trim();
+            players.push({ name: name, id: id, averageScore: parseFloat(averageScore) });
         });
 
         // Sort players by average score (descending)
         players.sort((a, b) => b.averageScore - a.averageScore);
 
-        // Simple assignment logic: Distribute players into teams
-        const teams = [];
-        players.forEach((player, index) => {
-            const teamNumber = index % 3 + 1; // Assuming 3 teams
-            if (!teams[teamNumber - 1]) {
-                teams[teamNumber - 1] = [];
-            }
-            teams[teamNumber - 1].push(player);
+        // Distribute players among coaches
+        let coachIndex = 0;
+        players.forEach(player => {
+            coaches[coachIndex].players.push(player);
+            coachIndex = (coachIndex + 1) % coaches.length;
         });
 
-        // Update the assignments table
-        let assignmentsHtml = '';
-        players.forEach(player => {
-            const team = teams.flat().find(p => p.name === player.name);
-            assignmentsHtml += `
-                <tr>
-                    <td>${player.name}</td>
-                    <td>Team ${teams.findIndex(t => t.includes(team)) + 1}</td>
-                </tr>
+        console.log(coaches);
+
+        // Update the coaches teams section
+        let coachesTeamsHtml = '';
+        coaches.forEach(coach => {
+            let totalScore = 0;
+            let playersHtml = '';
+            coach.players.forEach(player => {
+                totalScore += player.averageScore;
+                playersHtml += `
+                    <tr>
+                        <td>${player.name}</td>
+                        <td>${player.averageScore}</td>
+                    </tr>
+                `;
+            });
+
+            coachesTeamsHtml += `
+                <div class="coach-team">
+                    <h3>${coach.name}</h3>
+                    <table class="table mt-3">
+                        <thead>
+                            <tr>
+                                <th>Player Name</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${playersHtml}
+                            <tr>
+                                <td><strong>Total Score</strong></td>
+                                <td><strong>${totalScore.toFixed(2)}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             `;
         });
-        $('#assignmentsTable tbody').html(assignmentsHtml);
+
+        $('#naiveAssignments').html(coachesTeamsHtml);
     });
 
     function focusCell(cell) {

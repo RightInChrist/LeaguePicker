@@ -223,7 +223,6 @@ $(document).ready(function() {
         } else {
             // update existing data
             coaches.forEach(coach => {
-                console.log('updating', player.id, coach.id);
                 const score = getScore(player.id, coach.id);
                 $(`td[data-coach-id="${coach.id}"][data-player-id="${player.id}"]`).text(score);
             });
@@ -338,11 +337,23 @@ $(document).ready(function() {
         $('#assignmentsTable tbody').html(assignmentsHtml);
     });
 
-    function focusCell(nextCell) {
+    function focusCell(cell) {
+        const $cell = $(cell);
+    
         ignoreBlur = true; // Temporarily ignore blur
         saveToLocalStorage(true);
-        nextCell.focus();
+        cell.focus();
         setTimeout(() => ignoreBlur = false, 0); // Re-enable blur
+    
+        // Select all text if the cell contains text
+        if ($cell.text().trim().length > 0) {
+            const range = document.createRange();
+            const selection = window.getSelection();
+    
+            range.selectNodeContents(cell);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
     }
 
     function onKeyDown(e, self) {

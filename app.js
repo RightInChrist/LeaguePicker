@@ -394,8 +394,8 @@ $(document).ready(function() {
             });
 
             coachesTeamsHtml += `
-                <div class="coach-team">
-                    <h3>${coach.name}</h3>
+                <div class="coach-team sub-section">
+                    <h4>${coach.name}</h4>
                     <table class="table mt-3">
                         <thead>
                             <tr>

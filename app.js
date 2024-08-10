@@ -31,6 +31,10 @@ $(document).ready(function() {
         showSection('scores');
     });
 
+    $('#navAssignments').click(function() {
+        showSection('assignments');
+    });
+
     // Function to show the selected section and hide others
     function showSection(sectionId) {
         $('.section').addClass('d-none'); // Hide all sections
@@ -291,4 +295,91 @@ $(document).ready(function() {
         updateScoresSection();
         updatePlayersSection();
     }
+
+    // Assign teams based on average scores
+    $('#assignTeams').click(function() {
+        const players = [];
+        $('#playersTable tbody tr').each(function() {
+            const name = $(this).find('.player-name').text().trim();
+            const averageScore = parseFloat($(this).find('.average-score').text().trim()) || 0;
+            players.push({ name: name, averageScore: averageScore });
+        });
+
+        // Sort players by average score (descending)
+        players.sort((a, b) => b.averageScore - a.averageScore);
+
+        // Simple assignment logic: Distribute players into teams
+        const teams = [];
+        players.forEach((player, index) => {
+            const teamNumber = index % 3 + 1; // Assuming 3 teams
+            if (!teams[teamNumber - 1]) {
+                teams[teamNumber - 1] = [];
+            }
+            teams[teamNumber - 1].push(player);
+        });
+
+        // Update the assignments table
+        let assignmentsHtml = '';
+        players.forEach(player => {
+            const team = teams.flat().find(p => p.name === player.name);
+            assignmentsHtml += `
+                <tr>
+                    <td>${player.name}</td>
+                    <td>Team ${teams.findIndex(t => t.includes(team)) + 1}</td>
+                </tr>
+            `;
+        });
+        $('#assignmentsTable tbody').html(assignmentsHtml);
+    });
+
+    // Handle keydown events in the scores section
+    $('#scoresTable').on('keydown', 'td', function(e) {
+        const $currentCell = $(this);
+        console.log($currentCell.text());
+        const $table = $currentCell.closest('table');
+        const $rows = $table.find('tbody tr');
+        const $cells = $currentCell.closest('tr').find('td');
+
+        let currentRowIndex = $rows.index($currentCell.closest('tr'));
+        let currentCellIndex = $cells.index($currentCell);
+
+        switch (e.key) {
+            case 'Tab':
+                e.preventDefault(); // Prevent default tab behavior
+
+                let $nextCell = $cells.eq(currentCellIndex + 1);
+
+                if (!$nextCell.length) {
+                    let $nextRow = $rows.eq(currentRowIndex + 1);
+                    if ($nextRow.length) {
+                        const $nextRowCells = $nextRow.find('td');
+                        $nextCell = $nextRowCells.eq(currentCellIndex);
+                    }
+                }
+
+                if ($nextCell.length) {
+                    $nextCell.get(0).focus();
+                }
+                break;
+
+            case 'Enter':
+                e.preventDefault(); // Prevent default enter behavior
+
+                let $nextRow = $rows.eq(currentRowIndex + 1);
+                if ($nextRow.length) {
+                    const $nextRowCells = $nextRow.find('td');
+                    const $nextCell = $nextRowCells.eq(currentCellIndex);
+
+                    if ($nextCell.length) {
+                        $nextCell.get(0).focus();
+                    } else {
+                        $nextRowCells.get(0).focus();
+                    }
+                }
+                break;
+
+            default:
+                break;
+        }
+    });
 });

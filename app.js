@@ -1,4 +1,6 @@
 $(document).ready(function() {
+    let ignoreBlur = false;
+
     // Function to generate a simple UUID
     function generateUUID() {
         return 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -143,9 +145,11 @@ $(document).ready(function() {
         }
     });
 
-    // Handle editing tables
+    // Handle blur events with consideration of ignoreBlur flag
     $('tbody').on('blur', 'td', function() {
-        saveToLocalStorage();
+        if (!ignoreBlur) {
+            saveToLocalStorage();
+        }
     });
 
     // Function to update average scores in the players section
@@ -207,22 +211,22 @@ $(document).ready(function() {
     }).get();
 
     players.forEach(player => {
-        let rowInner = `<td class="player-name">${player.name}</td>`;
-        let rowHtml = `<tr data-id="${player.id}">`;
+        if (!existingPlayerIds.includes(player.id)) {
+            let rowHtml = `<tr data-id="${player.id}"><td class="player-name">${player.name}</td>`;
 
-        coaches.forEach(coach => {
-            const score = getScore(player.id, coach.id);
-            rowInner += `<td contenteditable="true" data-coach-id="${coach.id}" data-player-id="${player.id}">${score}</td>`;
-        });
-        rowHtml += rowInner;
-        rowHtml += '</tr>';
-
-        if (existingPlayerIds.includes(player.id)) {
-            // Update existing row
-            $(`#scoresTable tbody tr[data-id="${player.id}"]`).html(rowInner);
-        } else {
-            // Append new row
+            coaches.forEach(coach => {
+                const score = getScore(player.id, coach.id);
+                rowHtml += `<td contenteditable="true" data-coach-id="${coach.id}" data-player-id="${player.id}">${score}</td>`;
+            });
+            rowHtml += '</tr>';
             $('#scoresTable tbody').append(rowHtml);
+        } else {
+            // update existing data
+            coaches.forEach(coach => {
+                console.log('updating', player.id, coach.id);
+                const score = getScore(player.id, coach.id);
+                $(`td[data-coach-id="${coach.id}"][data-player-id="${player.id}"]`).text(score);
+            });
         }
     });
 
@@ -332,48 +336,50 @@ $(document).ready(function() {
         $('#assignmentsTable tbody').html(assignmentsHtml);
     });
 
-    // Handle keydown events in the scores section
-    $('#scoresTable').on('keydown', 'td', function(e) {
-        const $currentCell = $(this);
-        console.log($currentCell.text());
+    function focusCell(cell) {
+        ignoreBlur = true; // Temporarily ignore blur
+        cell.focus();
+        setTimeout(() => ignoreBlur = false, 0); // Re-enable blur
+    }
+
+    function onKeyDown(e, self) {
+        const $currentCell = $(self);
         const $table = $currentCell.closest('table');
         const $rows = $table.find('tbody tr');
         const $cells = $currentCell.closest('tr').find('td');
 
-        let currentRowIndex = $rows.index($currentCell.closest('tr'));
-        let currentCellIndex = $cells.index($currentCell);
+        const currentRowIndex = $rows.index($currentCell.closest('tr'));
+        const currentCellIndex = $cells.index($currentCell);
 
         switch (e.key) {
             case 'Tab':
                 e.preventDefault(); // Prevent default tab behavior
-
                 let $nextCell = $cells.eq(currentCellIndex + 1);
 
                 if (!$nextCell.length) {
                     let $nextRow = $rows.eq(currentRowIndex + 1);
                     if ($nextRow.length) {
                         const $nextRowCells = $nextRow.find('td');
-                        $nextCell = $nextRowCells.eq(currentCellIndex);
+                        $nextCell = $nextRowCells.eq(1);
                     }
                 }
 
                 if ($nextCell.length) {
-                    $nextCell.get(0).focus();
+                    focusCell($nextCell[0]);
                 }
                 break;
 
             case 'Enter':
                 e.preventDefault(); // Prevent default enter behavior
-
                 let $nextRow = $rows.eq(currentRowIndex + 1);
                 if ($nextRow.length) {
                     const $nextRowCells = $nextRow.find('td');
                     const $nextCell = $nextRowCells.eq(currentCellIndex);
 
                     if ($nextCell.length) {
-                        $nextCell.get(0).focus();
+                        focusCell($nextCell[0]);
                     } else {
-                        $nextRowCells.get(0).focus();
+                        focusCell($nextRowCells.eq(0)[0]);
                     }
                 }
                 break;
@@ -381,5 +387,11 @@ $(document).ready(function() {
             default:
                 break;
         }
+    }
+
+    // Handle keydown events in the scores section
+    $('#scoresTable').on('keydown', 'td', function(e) {
+        onKeyDown(e, this);
     });
+
 });

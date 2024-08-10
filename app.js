@@ -145,6 +145,24 @@ $(document).ready(function() {
         }
     });
 
+    function addToAssignPlayerToCoachTable(playerName, playerId, coachName, coachId) {
+        $('#playersToCoachesTable tbody').append(`
+            <tr data-player-id=${playerId} data-coach-id=${coachId} data-player-name=${playerName} data-coach-name=${coachName}>
+                <td>${playerName}</td>
+                <td>${coachName}</td>
+            </tr>
+        `);
+    }
+
+    function addToAssignPlayerToPlayerTable(playerOneName, playerOneId, playerTwoName, playerTwoId) {
+        $('#playersToPlayersTable tbody').append(`
+            <tr data-player-one-id=${playerOneId} data-player-two-id=${playerTwoId} data-player-one-name=${playerOneName} data-player-two-name=${playerTwoName}>
+                <td>${playerOneName}</td>
+                <td>${playerTwoName}</td>
+            </tr>
+        `);
+    }
+
     // Handle blur events with consideration of ignoreBlur flag
     $('tbody').on('blur', 'td', function() {
         if (!ignoreBlur) {
@@ -282,9 +300,29 @@ $(document).ready(function() {
             });
         });
 
+        const assignedPlayersToCoaches = [];
+        $('#playersToCoachesTable tbody tr').each(function() {
+            const playerName = $(this).data('player-name');
+            const playerId = $(this).data('player-id');
+            const coachName = $(this).data('coach-name');
+            const coachId = $(this).data('coach-id');
+            assignedPlayersToCoaches.push({ playerName, playerId, coachName, coachId });
+        });
+
+        const assignedPlayersToPlayers = [];
+        $('#playersToPlayersTable tbody tr').each(function() {
+            const playerOneName = $(this).data('player-one-name');
+            const playerOneId = $(this).data('player-one-id');
+            const playerTwoName = $(this).data('player-two-name');
+            const playerTwoId = $(this).data('player-two-id');
+            assignedPlayersToPlayers.push({ playerOneName, playerOneId, playerTwoName, playerTwoId });
+        });
+
         localStorage.setItem('coaches', JSON.stringify(coaches));
         localStorage.setItem('players', JSON.stringify(players));
         localStorage.setItem('scores', JSON.stringify(scores));
+        localStorage.setItem('assignedPlayersToCoaches', JSON.stringify(assignedPlayersToCoaches));
+        localStorage.setItem('assignedPlayersToPlayers', JSON.stringify(assignedPlayersToPlayers));
         if (!skipUpdates) {
             updateSections();
         }
@@ -295,12 +333,13 @@ $(document).ready(function() {
         const coaches = JSON.parse(localStorage.getItem('coaches') || '[]');
         const players = JSON.parse(localStorage.getItem('players') || '[]');
         const scores = JSON.parse(localStorage.getItem('scores') || '[]');
-
-        nextCoachId = coaches.length + 1; // Set nextCoachId based on existing data
-        nextPlayerId = players.length + 1; // Set nextPlayerId based on existing data
+        const assignedPlayersToCoaches = JSON.parse(localStorage.getItem('assignedPlayersToCoaches') || '[]');
+        const assignedPlayersToPlayers = JSON.parse(localStorage.getItem('assignedPlayersToPlayers') || '[]');
 
         coaches.forEach(coach => addToCoachesTable(coach.name, coach.id));
         players.forEach(player => addToPlayersTable(player.name, player.id));
+        assignedPlayersToCoaches.forEach(assigned => addToAssignPlayerToCoachTable(assigned.playerName, assigned.playerId, assigned.coachName, assigned.coachId));
+        assignedPlayersToPlayers.forEach(assigned => addToAssignPlayerToPlayerTable(assigned.playerOneName, assigned.playerOneId, assigned.playerTwoName, assigned.playerTwoId));
         updateSections();
     }
 
@@ -479,5 +518,66 @@ $(document).ready(function() {
     $('#scoresTable').on('keydown', 'td', function(e) {
         onKeyDown(e, this);
     });
+
+    // Populate player and coach selectors
+    function populateSelectors() {
+        const players = [];
+        const coaches = [];
+
+        $('#playersTable tbody tr').each(function() {
+            const name = $(this).find('.player-name').text().trim();
+            const id = $(this).data('id');
+            players.push({ name: name, id: id });
+        });
+
+        $('#coachesTable tbody tr').each(function() {
+            const name = $(this).find('.coach-name').text().trim();
+            const id = $(this).data('id');
+            coaches.push({ name: name, id: id });
+        });
+
+        // Populate player and coach selects
+        const playerSelect = $('#playerSelect');
+        const coachSelect = $('#coachSelect');
+        const playerSelectSibling = $('#playerSelectSibling');
+        const siblingSelect = $('#siblingSelect');
+
+        playerSelect.empty();
+        coachSelect.empty();
+        playerSelectSibling.empty();
+        siblingSelect.empty();
+
+        players.forEach(player => {
+            playerSelect.append(`<option value="${player.id}">${player.name}</option>`);
+            playerSelectSibling.append(`<option value="${player.id}">${player.name}</option>`);
+            siblingSelect.append(`<option value="${player.id}">${player.name}</option>`);
+        });
+
+        coaches.forEach(coach => {
+            coachSelect.append(`<option value="${coach.id}">${coach.name}</option>`);
+        });
+    }
+
+    // Handle manual player to coach assignment
+    $('#assignPlayerToCoach').click(function() {
+        const playerId = $('#playerSelect').val();
+        const playerName = $('#playerSelect :selected').text();
+        const coachId = $('#coachSelect').val();
+        const coachName = $('#coachSelect :selected').text();
+        addToAssignPlayerToCoachTable(playerName, playerId, coachName, coachId);
+        saveToLocalStorage(true);
+    });
+
+    $('#assignSibling').click(function() {
+        const playerOneId = $('#playerSelectSibling').val();
+        const playerOneName = $('#playerSelectSibling :selected').text();
+        const playerTwoId = $('#siblingSelect').val();
+        const playerTwoName = $('#siblingSelect :selected').text();
+        addToAssignPlayerToPlayerTable(playerOneName, playerOneId, playerTwoName, playerTwoId);
+        saveToLocalStorage(true);
+    });
+
+    // Initialize selectors
+    populateSelectors();
 
 });

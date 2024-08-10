@@ -29,7 +29,7 @@
                 <!-- Instructions Section -->
                 <div id="instructions" class="section">
                     <h2>Instructions for League Director and Coaches</h2>
-                    <div class="instructions-section">
+                    <div class="instructions-section sub-section">
                         <h3>For the League Director:</h3>
                         <ol>
                             <li><strong>Setup:</strong>
@@ -54,7 +54,7 @@
                             </li>
                         </ol>
                     </div>
-                    <div class="instructions-section">
+                    <div class="instructions-section sub-section">
                         <h3>For Coaches:</h3>
                         <ol>
                             <li><strong>Evaluating Players:</strong>
@@ -78,51 +78,58 @@
 
                 <!-- Add Coach Section -->
                 <div id="coaches" class="section d-none">
-                    <h2>Add Coach</h2>
-                    <form id="addCoachForm">
-                        <div class="form-group">
-                            <label for="coachName">Coach Name:</label>
-                            <input type="text" id="coachName" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Add Coach</button>
-                    </form>
+                    <div class="sub-section">
+                        <h2>Add Coach</h2>
+                        <form id="addCoachForm">
+                            <div class="form-group">
+                                <label for="coachName">Coach Name:</label>
+                                <input type="text" id="coachName" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Coach</button>
+                        </form>    
+                    </div>
 
-                    <h2>Coaches List</h2>
-                    <table class="table" id="coachesTable">
-                        <thead>
-                            <tr>
-                                <th>Coach Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Rows will be added here -->
-                        </tbody>
-                    </table>
+                    <div class="sub-section">
+                        <h2>Coaches List</h2>
+                        <table class="table" id="coachesTable">
+                            <thead>
+                                <tr>
+                                    <th>Coach Name</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Add Player Section -->
                 <div id="players" class="section d-none">
-                    <h2>Add Player</h2>
-                    <form id="addPlayerForm">
-                        <div class="form-group">
-                            <label for="playerName">Player Name:</label>
-                            <input type="text" id="playerName" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Add Player</button>
-                    </form>
+                    <div class="sub-section">
+                        <h2>Add Player</h2>
+                        <form id="addPlayerForm">
+                            <div class="form-group">
+                                <label for="playerName">Player Name:</label>
+                                <input type="text" id="playerName" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Player</button>
+                        </form>                        
+                    </div>
 
-                    <h2>Players List</h2>
-                    <table class="table" id="playersTable">
-                        <thead>
-                            <tr>
-                                <th>Player Name</th>
-                                <th>Average Score</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Rows will be added here -->
-                        </tbody>
-                    </table>
+                    <div class="sub-section">
+                        <h2>Players List</h2>
+                        <table class="table" id="playersTable">
+                            <thead>
+                                <tr>
+                                    <th>Player Name</th>
+                                    <th>Average Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
 
                 <!-- Scores Section -->
@@ -146,8 +153,59 @@
                 <!-- Assignments Section -->
                 <div id="assignments" class="section d-none">
                     <h2>Assignments</h2>
-                    <button id="assignTeamsNaive" class="btn btn-primary">Assign Teams Naively</button>
-                    <div id="naiveAssignments"></div>
+
+                    <!-- Manual Coach Assignment -->
+                    <div id="manualAssignments" class="sub-section">
+                        <h3>Assign Players to Coaches</h3>
+                        <div>
+                            <label for="playerSelect">Player:</label>
+                            <select id="playerSelect"></select>
+                        </div>
+                        <div>
+                            <label for="coachSelect">Coach:</label>
+                            <select id="coachSelect"></select>
+                        </div>
+                        <button id="assignPlayerToCoach" class="btn btn-primary">Assign Player to Coach</button>
+                        <table class="table" id="playersToCoachesTable">
+                            <thead>
+                                <tr>
+                                    <th>Player Name</th>
+                                    <th>Coach Name</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Sibling Assignment Section -->
+                    <div id="siblingAssignments" class="sub-section">
+                        <h3>Assign Players Together</h3>
+                        <div>
+                            <label for="playerSelectSibling">Player:</label>
+                            <select id="playerSelectSibling"></select>
+                        </div>
+                        <div>
+                            <label for="siblingSelect">Player:</label>
+                            <select id="siblingSelect"></select>
+                        </div>
+                        <button id="assignSibling" class="btn btn-primary">Assign Players Together</button>
+                        <table class="table" id="playersToPlayersTable">
+                            <thead>
+                                <tr>
+                                    <th>Player Name</th>
+                                    <th>Player Name</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>Assign Teams</h3>
+                        <button id="assignTeamsNaive" class="btn btn-primary">Assign Teams Naively</button>
+
+                        <div id="naiveAssignments"></div>
+                    </div>
                 </div>
 
             </main>

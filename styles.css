@@ -3,11 +3,6 @@
     font-weight: bold;
 }
 
-/* Section styles */
-.section {
-    margin-top: 20px;
-}
-
 #instructions {
     margin-bottom: 30px;
 }
@@ -28,11 +23,34 @@
     padding-left: 20px;
 }
 
-/* Optional: Style for the coach list */
-#coachesList {
-    margin-top: 20px;
-}
-
 .hidden {
     display: none;
+}
+
+.section {
+    padding: 20px;
+    margin: 20px;
+    border-radius: 8px; /* Rounded corners */
+    border: 2px solid #007bff; /* Blue border for sections */
+    background-color: #f9f9f9; /* Light background for better contrast */
+}
+
+.sub-section {
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 6px; /* Slightly rounded corners for sub-sections */
+    border: 1px solid #007bff; /* Lighter blue border for sub-sections */
+    background-color: #ffffff; /* White background for sub-sections */
+}
+
+.section h2 {
+    border-bottom: 2px solid #007bff; /* Blue line under section headers */
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.sub-section h3 {
+    border-bottom: 1px solid #007bff; /* Lighter blue line under sub-section headers */
+    padding-bottom: 5px;
+    margin-bottom: 5px;
 }

@@ -101,6 +101,11 @@
                         <!-- Coaches will be listed here -->
                     </ul>
 
+                    <h2>Coach Scores</h2>
+                    <div id="coachScores">
+                        <!-- Scores will be displayed here -->
+                    </div>
+
                     <h2>Edit Coach</h2>
                     <form id="editCoachForm" class="d-none">
                         <div class="form-group">
@@ -114,6 +119,14 @@
                 <!-- Editable table for players and scores -->
                 <div id="players" class="section d-none">
                     <h2>Player Evaluation</h2>
+                    <form id="addPlayerForm">
+                        <div class="form-group">
+                            <label for="playerName">Player Name:</label>
+                            <input type="text" id="playerName" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Player</button>
+                    </form>
+                    <h2>Players List</h2>
                     <table class="table" id="playersTable">
                         <thead>
                             <tr>

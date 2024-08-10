@@ -66,19 +66,30 @@ $(document).ready(function() {
     });
 
     // Handle adding players
-    $('#playersTable').on('blur', 'td', function() {
-        saveToLocalStorage(); // Save data to local storage on player data change
+    $('#addPlayerForm').submit(function(event) {
+        event.preventDefault();
+        const playerName = $('#playerName').val().trim();
+        if (playerName) {
+            addPlayer(playerName);
+            $('#playerName').val(''); // Clear the input field
+            saveToLocalStorage(); // Save data to local storage
+        }
     });
 
     // Function to add a player to the table
     function addPlayer(name, score) {
         $('#playersTable tbody').append(`
             <tr>
-                <td contenteditable="true">${name}</td>
-                <td contenteditable="true">${score}</td>
+                <td contenteditable="true" class="player-name">${name}</td>
+                <td contenteditable="true" class="player-score">${score}</td>
             </tr>
         `);
     }
+
+    // Handle editing player names
+    $('#playersTable').on('blur', 'td', function() {
+        saveToLocalStorage(); // Save data to local storage on player data change
+    });
 
     // Function to save data to local storage
     function saveToLocalStorage() {

@@ -371,7 +371,7 @@ $(document).ready(function() {
     
                 if (e.shiftKey) { // Handle Shift+Tab for reverse navigation
                     let $prevCell = $cells.eq(currentCellIndex - 1);
-                    if (!$prevCell.length) {
+                    if (currentCellIndex === 1) {
                         let $prevRow = $rows.eq(currentRowIndex - 1);
                         if ($prevRow.length) {
                             const $prevRowCells = $prevRow.find('td');
@@ -388,7 +388,7 @@ $(document).ready(function() {
                         let $nextRow = $rows.eq(currentRowIndex + 1);
                         if ($nextRow.length) {
                             const $nextRowCells = $nextRow.find('td');
-                            $nextCell = $nextRowCells.eq(0);
+                            $nextCell = $nextRowCells.eq(1);
                         }
                     }
     

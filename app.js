@@ -247,7 +247,7 @@ $(document).ready(function() {
     }
 
     // Function to save data to local storage
-    function saveToLocalStorage() {
+    function saveToLocalStorage(skipUpdates = false) {
         const coaches = [];
         $('#coachesTable tbody tr').each(function() {
             const name = $(this).find('.coach-name').text().trim();
@@ -278,7 +278,9 @@ $(document).ready(function() {
         localStorage.setItem('coaches', JSON.stringify(coaches));
         localStorage.setItem('players', JSON.stringify(players));
         localStorage.setItem('scores', JSON.stringify(scores));
-        updateSections();
+        if (!skipUpdates) {
+            updateSections();
+        }
     }
 
     // Function to load data from local storage
@@ -336,9 +338,10 @@ $(document).ready(function() {
         $('#assignmentsTable tbody').html(assignmentsHtml);
     });
 
-    function focusCell(cell) {
+    function focusCell(nextCell) {
         ignoreBlur = true; // Temporarily ignore blur
-        cell.focus();
+        saveToLocalStorage(true);
+        nextCell.focus();
         setTimeout(() => ignoreBlur = false, 0); // Re-enable blur
     }
 

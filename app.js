@@ -350,47 +350,77 @@ $(document).ready(function() {
         const $table = $currentCell.closest('table');
         const $rows = $table.find('tbody tr');
         const $cells = $currentCell.closest('tr').find('td');
-
+    
         const currentRowIndex = $rows.index($currentCell.closest('tr'));
         const currentCellIndex = $cells.index($currentCell);
-
+    
         switch (e.key) {
             case 'Tab':
                 e.preventDefault(); // Prevent default tab behavior
-                let $nextCell = $cells.eq(currentCellIndex + 1);
-
-                if (!$nextCell.length) {
+    
+                if (e.shiftKey) { // Handle Shift+Tab for reverse navigation
+                    let $prevCell = $cells.eq(currentCellIndex - 1);
+                    if (!$prevCell.length) {
+                        let $prevRow = $rows.eq(currentRowIndex - 1);
+                        if ($prevRow.length) {
+                            const $prevRowCells = $prevRow.find('td');
+                            $prevCell = $prevRowCells.eq($prevRowCells.length - 1);
+                        }
+                    }
+    
+                    if ($prevCell.length) {
+                        focusCell($prevCell[0]);
+                    }
+                } else { // Handle Tab for forward navigation
+                    let $nextCell = $cells.eq(currentCellIndex + 1);
+                    if (!$nextCell.length) {
+                        let $nextRow = $rows.eq(currentRowIndex + 1);
+                        if ($nextRow.length) {
+                            const $nextRowCells = $nextRow.find('td');
+                            $nextCell = $nextRowCells.eq(0);
+                        }
+                    }
+    
+                    if ($nextCell.length) {
+                        focusCell($nextCell[0]);
+                    }
+                }
+                break;
+    
+            case 'Enter':
+                e.preventDefault(); // Prevent default enter behavior
+    
+                if (e.shiftKey) { // Handle Shift+Enter for reverse row navigation
+                    let $prevRow = $rows.eq(currentRowIndex - 1);
+                    if ($prevRow.length) {
+                        const $prevRowCells = $prevRow.find('td');
+                        const $prevCell = $prevRowCells.eq(currentCellIndex);
+    
+                        if ($prevCell.length) {
+                            focusCell($prevCell[0]);
+                        } else {
+                            focusCell($prevRowCells.eq($prevRowCells.length - 1)[0]);
+                        }
+                    }
+                } else { // Handle Enter for forward row navigation
                     let $nextRow = $rows.eq(currentRowIndex + 1);
                     if ($nextRow.length) {
                         const $nextRowCells = $nextRow.find('td');
-                        $nextCell = $nextRowCells.eq(1);
-                    }
-                }
-
-                if ($nextCell.length) {
-                    focusCell($nextCell[0]);
-                }
-                break;
-
-            case 'Enter':
-                e.preventDefault(); // Prevent default enter behavior
-                let $nextRow = $rows.eq(currentRowIndex + 1);
-                if ($nextRow.length) {
-                    const $nextRowCells = $nextRow.find('td');
-                    const $nextCell = $nextRowCells.eq(currentCellIndex);
-
-                    if ($nextCell.length) {
-                        focusCell($nextCell[0]);
-                    } else {
-                        focusCell($nextRowCells.eq(0)[0]);
+                        const $nextCell = $nextRowCells.eq(currentCellIndex);
+    
+                        if ($nextCell.length) {
+                            focusCell($nextCell[0]);
+                        } else {
+                            focusCell($nextRowCells.eq(0)[0]);
+                        }
                     }
                 }
                 break;
-
+    
             default:
                 break;
         }
-    }
+    }    
 
     // Handle keydown events in the scores section
     $('#scoresTable').on('keydown', 'td', function(e) {

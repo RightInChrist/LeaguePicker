@@ -1,0 +1,23 @@
+#instructions {
+    margin-bottom: 30px;
+}
+
+.instructions-section {
+    margin-bottom: 20px;
+}
+
+.instructions-section h3 {
+    color: #007bff;
+}
+
+.instructions-section ol {
+    padding-left: 20px;
+}
+
+.instructions-section ul {
+    padding-left: 20px;
+}
+
+.hidden {
+    display: none;
+}

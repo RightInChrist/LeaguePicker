@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeaguePicker</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>LeaguePicker</h1>
+
+        <!-- Toggle Instructions Button -->
+        <button id="toggleInstructions" class="btn btn-primary mb-3">Show Instructions</button>
+
+        <!-- Instructions Section -->
+        <div id="instructions">
+            <h2>Instructions for League Director and Coaches</h2>
+            <div class="instructions-section">
+                <h3>For the League Director:</h3>
+                <ol>
+                    <li><strong>Setup:</strong>
+                        <ul>
+                            <li>Ensure that all coaches and players are added to the system.</li>
+                            <li>All data is stored locally in the browser; no data is stored online.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Evaluation Process:</strong>
+                        <ul>
+                            <li>Each coach evaluates every player by scoring them from 0 to 5 (including decimals).</li>
+                            <li>Scores are entered anonymously, so scores are not linked to specific coaches.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Data Entry:</strong>
+                        <ul>
+                            <li>After evaluations, enter player names and coach names into the system.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Generating Team Assignments:</strong>
+                        <ul>
+                            <li>The system will calculate average scores and generate team assignments.</li>
+                            <li>Review and adjust the assignments as needed.</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+            <div class="instructions-section">
+                <h3>For Coaches:</h3>
+                <ol>
+                    <li><strong>Evaluating Players:</strong>
+                        <ul>
+                            <li>Score each player from 0 to 5 (including decimals).</li>
+                            <li>Your scores are anonymous.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Entering Data:</strong>
+                        <ul>
+                            <li>Ensure all evaluations are submitted before the deadline.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Reviewing Team Assignments:</strong>
+                        <ul>
+                            <li>Review the suggested team assignments after scores are processed.</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Editable table for players and scores -->
+        <h2>Player Evaluation</h2>
+        <table class="table" id="playersTable">
+            <thead>
+                <tr>
+                    <th>Player Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be added here -->
+            </tbody>
+        </table>
+
+        <!-- Miniature tables for team assignments -->
+        <h2>Team Assignments</h2>
+        <div id="teamAssignments">
+            <!-- Team assignment tables will be displayed here -->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

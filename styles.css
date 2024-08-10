@@ -18,6 +18,11 @@
     padding-left: 20px;
 }
 
+/* Optional: Style for the coach list */
+#coachesList {
+    margin-top: 20px;
+}
+
 .hidden {
     display: none;
 }

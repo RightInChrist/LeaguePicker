@@ -13,6 +13,23 @@ $(document).ready(function() {
         }
     });
 
+    // Handle adding coaches
+    $('#addCoachForm').submit(function(event) {
+        event.preventDefault();
+        const coachName = $('#coachName').val().trim();
+        if (coachName) {
+            addCoach(coachName);
+            $('#coachName').val(''); // Clear the input field
+        }
+    });
+
+    // Function to add a coach to the list
+    function addCoach(name) {
+        $('#coachesList').append(`
+            <li class="list-group-item">${name}</li>
+        `);
+    }
+
     // Example function to add a player
     function addPlayer(name, score) {
         $('#playersTable tbody').append(`

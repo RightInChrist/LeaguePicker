@@ -1,6 +1,12 @@
 $(document).ready(function() {
-    let nextCoachId = 1;
-    let nextPlayerId = 1;
+    // Function to generate a simple UUID
+    function generateUUID() {
+        return 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0,
+                    v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
 
     // Load data from local storage on page load
     loadFromLocalStorage();
@@ -46,7 +52,7 @@ $(document).ready(function() {
     // Function to upsert a coach
     function upsertCoach(name, id = null) {
         if (!id) {
-            id = nextCoachId++;
+            id = generateUUID();
         }
         addToCoachesTable(name, id);
         saveToLocalStorage();
@@ -56,6 +62,10 @@ $(document).ready(function() {
         $('#coachesTable tbody').append(`
             <tr data-id=${id}>
                 <td class="coach-name" contenteditable="true">${name}</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary move-up">↑</button>
+                    <button class="btn btn-sm btn-secondary move-down">↓</button>
+                </td>
             </tr>
         `);
     }
@@ -73,7 +83,7 @@ $(document).ready(function() {
     // Function to upsert a player
     function upsertPlayer(name, id = null) {
         if (!id) {
-            id = nextPlayerId++;
+            id = generateUUID();
         }
         addToPlayersTable(name, id);
         saveToLocalStorage();
@@ -84,19 +94,58 @@ $(document).ready(function() {
             <tr data-id="${id}">
                 <td class="player-name" contenteditable="true">${name}</td>
                 <td class="average-score">unknown</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary move-up">↑</button>
+                    <button class="btn btn-sm btn-secondary move-down">↓</button>
+                </td>
             </tr>
         `);
     }
 
+    // Handle moving rows up and down
+    $('#coachesTable').on('click', '.move-up', function() {
+        const $row = $(this).closest('tr');
+        const $prevRow = $row.prev();
+        if ($prevRow.length) {
+            $row.insertBefore($prevRow);
+            saveToLocalStorage();
+        }
+    });
+
+    $('#coachesTable').on('click', '.move-down', function() {
+        const $row = $(this).closest('tr');
+        const $nextRow = $row.next();
+        if ($nextRow.length) {
+            $row.insertAfter($nextRow);
+            saveToLocalStorage();
+        }
+    });
+
+    $('#playersTable').on('click', '.move-up', function() {
+        const $row = $(this).closest('tr');
+        const $prevRow = $row.prev();
+        if ($prevRow.length) {
+            $row.insertBefore($prevRow);
+            saveToLocalStorage();
+        }
+    });
+
+    $('#playersTable').on('click', '.move-down', function() {
+        const $row = $(this).closest('tr');
+        const $nextRow = $row.next();
+        if ($nextRow.length) {
+            $row.insertAfter($nextRow);
+            saveToLocalStorage();
+        }
+    });
+
     // Handle editing tables
     $('tbody').on('blur', 'td', function() {
-        console.log('tbody blur');
         saveToLocalStorage();
     });
 
     // Function to update average scores in the players section
     function updatePlayersSection() {
-        console.log('updatePlayersSection');
         $('#playersTable tbody tr').each(function() {
             const playerId = $(this).data('id');
             const scores = [];
@@ -115,7 +164,6 @@ $(document).ready(function() {
 
     // Function to update the scores section
     function updateScoresSection() {
-        console.log('updateScoresSection');
         const coaches = [];
         $('#coachesTable tbody tr').each(function() {
             const name = $(this).find('.coach-name').text().trim();
@@ -219,9 +267,6 @@ $(document).ready(function() {
             });
         });
 
-        console.log('save coaches', coaches);
-        console.log('save players', players);
-        console.log('save scores', scores);
         localStorage.setItem('coaches', JSON.stringify(coaches));
         localStorage.setItem('players', JSON.stringify(players));
         localStorage.setItem('scores', JSON.stringify(scores));

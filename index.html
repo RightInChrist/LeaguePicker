@@ -8,100 +8,155 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>LeaguePicker</h1>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" id="navInstructions">Instructions</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="navCoaches">Coaches</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="navTeams">Teams</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="navPlayers">Players</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
 
-        <!-- Toggle Instructions Button -->
-        <button id="toggleInstructions" class="btn btn-primary mb-3">Show Instructions</button>
+            <!-- Main Content -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+                <h1>LeaguePicker</h1>
 
-        <!-- Instructions Section -->
-        <div id="instructions">
-            <h2>Instructions for League Director and Coaches</h2>
-            <div class="instructions-section">
-                <h3>For the League Director:</h3>
-                <ol>
-                    <li><strong>Setup:</strong>
-                        <ul>
-                            <li>Ensure that all coaches and players are added to the system.</li>
-                            <li>All data is stored locally in the browser; no data is stored online.</li>
-                        </ul>
-                    </li>
-                    <li><strong>Evaluation Process:</strong>
-                        <ul>
-                            <li>Each coach evaluates every player by scoring them from 0 to 5 (including decimals).</li>
-                            <li>Scores are entered anonymously, so scores are not linked to specific coaches.</li>
-                        </ul>
-                    </li>
-                    <li><strong>Data Entry:</strong>
-                        <ul>
-                            <li>After evaluations, enter player names and coach names into the system.</li>
-                        </ul>
-                    </li>
-                    <li><strong>Generating Team Assignments:</strong>
-                        <ul>
-                            <li>The system will calculate average scores and generate team assignments.</li>
-                            <li>Review and adjust the assignments as needed.</li>
-                        </ul>
-                    </li>
-                </ol>
-            </div>
-            <div class="instructions-section">
-                <h3>For Coaches:</h3>
-                <ol>
-                    <li><strong>Evaluating Players:</strong>
-                        <ul>
-                            <li>Score each player from 0 to 5 (including decimals).</li>
-                            <li>Your scores are anonymous.</li>
-                        </ul>
-                    </li>
-                    <li><strong>Entering Data:</strong>
-                        <ul>
-                            <li>Ensure all evaluations are submitted before the deadline.</li>
-                        </ul>
-                    </li>
-                    <li><strong>Reviewing Team Assignments:</strong>
-                        <ul>
-                            <li>Review the suggested team assignments after scores are processed.</li>
-                        </ul>
-                    </li>
-                </ol>
-            </div>
-        </div>
+                <!-- Instructions Section -->
+                <div id="instructions" class="section">
+                    <h2>Instructions for League Director and Coaches</h2>
+                    <div class="instructions-section">
+                        <h3>For the League Director:</h3>
+                        <ol>
+                            <li><strong>Setup:</strong>
+                                <ul>
+                                    <li>Ensure that all coaches and players are added to the system.</li>
+                                    <li>All data is stored locally in the browser; no data is stored online.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Evaluation Process:</strong>
+                                <ul>
+                                    <li>Each coach evaluates every player by scoring them from 0 to 5 (including decimals).</li>
+                                    <li>Scores are entered anonymously, so scores are not linked to specific coaches.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Data Entry:</strong>
+                                <ul>
+                                    <li>After evaluations, enter player names and coach names into the system.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Generating Team Assignments:</strong>
+                                <ul>
+                                    <li>The system will calculate average scores and generate team assignments.</li>
+                                    <li>Review and adjust the assignments as needed.</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="instructions-section">
+                        <h3>For Coaches:</h3>
+                        <ol>
+                            <li><strong>Evaluating Players:</strong>
+                                <ul>
+                                    <li>Score each player from 0 to 5 (including decimals).</li>
+                                    <li>Your scores are anonymous.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Entering Data:</strong>
+                                <ul>
+                                    <li>Ensure all evaluations are submitted before the deadline.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Reviewing Team Assignments:</strong>
+                                <ul>
+                                    <li>Review the suggested team assignments after scores are processed.</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
 
-        <!-- Add Coach Section -->
-        <h2>Add Coach</h2>
-        <form id="addCoachForm">
-            <div class="form-group">
-                <label for="coachName">Coach Name:</label>
-                <input type="text" id="coachName" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Add Coach</button>
-        </form>
+                <!-- Add Coach Section -->
+                <div id="coaches" class="section d-none">
+                    <h2>Add Coach</h2>
+                    <form id="addCoachForm">
+                        <div class="form-group">
+                            <label for="coachName">Coach Name:</label>
+                            <input type="text" id="coachName" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Coach</button>
+                    </form>
 
-        <!-- List of Coaches -->
-        <h2>Coaches List</h2>
-        <ul id="coachesList" class="list-group">
-            <!-- Coaches will be listed here -->
-        </ul>
+                    <h2>Coaches List</h2>
+                    <ul id="coachesList" class="list-group">
+                        <!-- Coaches will be listed here -->
+                    </ul>
 
-        <!-- Editable table for players and scores -->
-        <h2>Player Evaluation</h2>
-        <table class="table" id="playersTable">
-            <thead>
-                <tr>
-                    <th>Player Name</th>
-                    <th>Score</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Rows will be added here -->
-            </tbody>
-        </table>
+                    <h2>Edit Coach</h2>
+                    <form id="editCoachForm" class="d-none">
+                        <div class="form-group">
+                            <label for="editCoachName">Edit Coach Name:</label>
+                            <input type="text" id="editCoachName" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning">Update Coach</button>
+                    </form>
+                </div>
 
-        <!-- Miniature tables for team assignments -->
-        <h2>Team Assignments</h2>
-        <div id="teamAssignments">
-            <!-- Team assignment tables will be displayed here -->
+                <!-- Assign Teams Section -->
+                <div id="teams" class="section d-none">
+                    <h2>Assign Teams</h2>
+                    <form id="assignTeamsForm">
+                        <div class="form-group">
+                            <label for="teamName">Team Name:</label>
+                            <input type="text" id="teamName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="teamColor">Team Color:</label>
+                            <input type="color" id="teamColor" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Team</button>
+                    </form>
+
+                    <h2>Teams List</h2>
+                    <ul id="teamsList" class="list-group">
+                        <!-- Teams will be listed here -->
+                    </ul>
+                </div>
+
+                <!-- Editable table for players and scores -->
+                <div id="players" class="section d-none">
+                    <h2>Player Evaluation</h2>
+                    <table class="table" id="playersTable">
+                        <thead>
+                            <tr>
+                                <th>Player Name</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Miniature tables for team assignments -->
+                <div id="teamAssignments" class="section d-none">
+                    <h2>Team Assignments</h2>
+                    <!-- Team assignment tables will be displayed here -->
+                </div>
+            </main>
         </div>
     </div>
 

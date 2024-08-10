@@ -1,17 +1,31 @@
 $(document).ready(function() {
-    // Initially show the instructions
-    $('#instructions').removeClass('hidden');
-    $('#toggleInstructions').text('Hide Instructions');
+    // Initially show Instructions
+    showSection('instructions');
 
-    // Toggle instructions visibility on button click
-    $('#toggleInstructions').click(function() {
-        $('#instructions').toggleClass('hidden');
-        if ($('#instructions').hasClass('hidden')) {
-            $(this).text('Show Instructions');
-        } else {
-            $(this).text('Hide Instructions');
-        }
+    // Handle navigation
+    $('#navInstructions').click(function() {
+        showSection('instructions');
     });
+
+    $('#navCoaches').click(function() {
+        showSection('coaches');
+    });
+
+    $('#navTeams').click(function() {
+        showSection('teams');
+    });
+
+    $('#navPlayers').click(function() {
+        showSection('players');
+    });
+
+    // Function to show the selected section and hide others
+    function showSection(sectionId) {
+        $('.section').addClass('d-none'); // Hide all sections
+        $('#' + sectionId).removeClass('d-none'); // Show the selected section
+        $('.nav-link').removeClass('active'); // Remove active class from all nav links
+        $('#nav' + sectionId.charAt(0).toUpperCase() + sectionId.slice(1)).addClass('active'); // Set active class
+    }
 
     // Handle adding coaches
     $('#addCoachForm').submit(function(event) {
@@ -26,7 +40,48 @@ $(document).ready(function() {
     // Function to add a coach to the list
     function addCoach(name) {
         $('#coachesList').append(`
-            <li class="list-group-item">${name}</li>
+            <li class="list-group-item">
+                <span class="coach-name">${name}</span>
+                <button class="btn btn-sm btn-warning edit-coach-btn">Edit</button>
+            </li>
+        `);
+    }
+
+    // Handle editing coach names
+    $('#coachesList').on('click', '.edit-coach-btn', function() {
+        const coachName = $(this).siblings('.coach-name').text();
+        $('#editCoachName').val(coachName);
+        $('#editCoachForm').removeClass('d-none');
+        $(this).closest('li').remove();
+    });
+
+    $('#editCoachForm').submit(function(event) {
+        event.preventDefault();
+        const newName = $('#editCoachName').val().trim();
+        if (newName) {
+            addCoach(newName);
+            $('#editCoachForm').addClass('d-none');
+        }
+    });
+
+    // Handle adding teams
+    $('#assignTeamsForm').submit(function(event) {
+        event.preventDefault();
+        const teamName = $('#teamName').val().trim();
+        const teamColor = $('#teamColor').val();
+        if (teamName) {
+            addTeam(teamName, teamColor);
+            $('#teamName').val(''); // Clear the input field
+            $('#teamColor').val('#000000'); // Reset color picker
+        }
+    });
+
+    // Function to add a team to the list
+    function addTeam(name, color) {
+        $('#teamsList').append(`
+            <li class="list-group-item" style="background-color: ${color}; color: #fff;">
+                ${name} <span class="badge badge-light" style="background-color: ${color};">Color</span>
+            </li>
         `);
     }
 

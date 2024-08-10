@@ -1,3 +1,26 @@
+/* Sidebar styles */
+#sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding-top: 20px;
+}
+
+.sidebar-sticky {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+}
+
+.nav-link.active {
+    font-weight: bold;
+}
+
+/* Section styles */
+.section {
+    margin-top: 20px;
+}
+
 #instructions {
     margin-bottom: 30px;
 }

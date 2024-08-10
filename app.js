@@ -14,10 +14,6 @@ $(document).ready(function() {
         showSection('coaches');
     });
 
-    $('#navTeams').click(function() {
-        showSection('teams');
-    });
-
     $('#navPlayers').click(function() {
         showSection('players');
     });
@@ -69,54 +65,26 @@ $(document).ready(function() {
         }
     });
 
-    // Handle adding teams
-    $('#assignTeamsForm').submit(function(event) {
-        event.preventDefault();
-        const teamName = $('#teamName').val().trim();
-        const teamColor = $('#teamColor').val();
-        if (teamName) {
-            addTeam(teamName, teamColor);
-            $('#teamName').val(''); // Clear the input field
-            $('#teamColor').val('#000000'); // Reset color picker
-            saveToLocalStorage(); // Save data to local storage
-        }
-    });
-
-    // Function to add a team to the list
-    function addTeam(name, color) {
-        $('#teamsList').append(`
-            <li class="list-group-item" style="background-color: ${color}; color: #fff;">
-                ${name} <span class="badge badge-light" style="background-color: ${color};">Color</span>
-            </li>
-        `);
-    }
-
-    // Function to add a team to the list
-    function addTeam(name, color) {
-        $('#teamsList').append(`
-            <li class="list-group-item" style="background-color: ${color}; color: #fff;">
-                ${name} <span class="badge badge-light" style="background-color: ${color};">Color</span>
-            </li>
-        `);
-    }
-
     // Handle adding players
     $('#playersTable').on('blur', 'td', function() {
         saveToLocalStorage(); // Save data to local storage on player data change
     });
+
+    // Function to add a player to the table
+    function addPlayer(name, score) {
+        $('#playersTable tbody').append(`
+            <tr>
+                <td contenteditable="true">${name}</td>
+                <td contenteditable="true">${score}</td>
+            </tr>
+        `);
+    }
 
     // Function to save data to local storage
     function saveToLocalStorage() {
         const coaches = [];
         $('#coachesList .coach-name').each(function() {
             coaches.push($(this).text());
-        });
-
-        const teams = [];
-        $('#teamsList .list-group-item').each(function() {
-            const name = $(this).contents().get(0).nodeValue.trim();
-            const color = $(this).find('.badge').css('background-color');
-            teams.push({ name: name, color: color });
         });
 
         const players = [];
@@ -127,28 +95,15 @@ $(document).ready(function() {
         });
 
         localStorage.setItem('coaches', JSON.stringify(coaches));
-        localStorage.setItem('teams', JSON.stringify(teams));
         localStorage.setItem('players', JSON.stringify(players));
     }
 
     // Function to load data from local storage
     function loadFromLocalStorage() {
         const coaches = JSON.parse(localStorage.getItem('coaches') || '[]');
-        const teams = JSON.parse(localStorage.getItem('teams') || '[]');
         const players = JSON.parse(localStorage.getItem('players') || '[]');
 
         coaches.forEach(name => addCoach(name));
-        teams.forEach(team => addTeam(team.name, team.color));
         players.forEach(player => addPlayer(player.name, player.score));
-    }
-
-    // Function to add a player to the table
-    function addPlayer(name, score) {
-        $('#playersTable tbody').append(`
-            <tr>
-                <td contenteditable="true">${name}</td>
-                <td contenteditable="true">${score}</td>
-            </tr>
-        `);
     }
 });

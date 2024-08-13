@@ -355,10 +355,10 @@ $(document).ready(function() {
         $('#coachesTable tbody tr').each(function() {
             const name = $(this).find('.coach-name').text().trim();
             const id = $(this).data('id');
-            coaches.push({ name: name, id: id, players: [] });
+            coaches.push({ name: name, id: id, players: [], assigned: [] });
         });
 
-        const players = [];
+        let players = [];
         $('#playersTable tbody tr').each(function() {
             const name = $(this).find('.player-name').text().trim();
             const id = $(this).data('id');
@@ -369,21 +369,104 @@ $(document).ready(function() {
         // Sort players by average score (descending)
         players.sort((a, b) => b.averageScore - a.averageScore);
 
-        // Distribute players among coaches
-        let coachIndex = 0;
+        // Function to assign a player to a coach
+        function assignPlayerToCoach(player, coach) {
+            console.log('assignPlayerToCoach', player.name, coach.name);
+            coach.assigned.push(player);
+        }
+
+        $('#playersToCoachesTable tbody tr').each(function() {
+            const playerId = $(this).data('player-id');
+            const coachId = $(this).data('coach-id');
+            const coach = coaches.find(c => c.id === coachId);
+            const player = players.find(p => p.id === playerId);
+            assignPlayerToCoach(player, coach);
+            players = players.filter(p => p.id !== player.id); // Remove assigned child from players list
+        });
+
+        const assignedPlayersToPlayers = new Map();
+        $('#playersToPlayersTable tbody tr').each(function() {
+            const playerOneId = $(this).data('player-one-id');
+            const playerTwoId = $(this).data('player-two-id');
+            const playerOne = players.find(p => p.id === playerOneId);
+            const playerTwo = players.find(p => p.id === playerTwoId);
+        
+            if (!assignedPlayersToPlayers.has(playerOneId)) {
+                assignedPlayersToPlayers.set(playerOneId, [playerOne, playerTwo]);
+            } else {
+                const existingGroup = assignedPlayersToPlayers.get(playerOneId);
+                if (!existingGroup.find(p => p.id === playerTwoId)) {
+                    existingGroup.push(playerTwo);
+                }
+            }
+        });
+        
+        assignedPlayersToPlayers.forEach((siblingGroup) => {
+            let minPlayersCount = Math.min(...coaches.map(coach => coach.players.length));
+            let availableCoaches = coaches.filter(coach => coach.players.length === minPlayersCount);
+
+            const randomCoachIndex = Math.floor(Math.random() * availableCoaches.length);
+            const selectedCoach = availableCoaches[randomCoachIndex];
+        
+            // Assign the sibling group to the selected coach
+            siblingGroup.forEach(sibling => {
+                assignPlayerToCoach(sibling, selectedCoach);
+                players = players.filter(p => p.id !== sibling.id); // Remove assigned sibling from players list
+            });
+        });
+
+        // Assign the remaining players to coaches
+        let nextCoachIndex = 0;
         players.forEach(player => {
-            coaches[coachIndex].players.push(player);
-            coachIndex = (coachIndex + 1) % coaches.length;
+            let playerAssigned = false;
+            while (!playerAssigned) {
+                for (let i = nextCoachIndex; i < coaches.length; i++) {
+                    const coach = coaches[i];
+    
+                    // Check if there's a higher scored player in the assigned list
+                    const higherScorePlayerIndex = coach.assigned.findIndex(p => p.averageScore > player.averageScore);
+                    if (higherScorePlayerIndex !== -1) {
+                        // Swap the player with the higher scored player
+                        const higherScorePlayer = coach.assigned[higherScorePlayerIndex];
+                        coach.assigned.splice(higherScorePlayerIndex, 1); // Remove higher scored player from assigned list
+                        coach.players.push(higherScorePlayer); // Reinsert higher scored player back into the players list
+                        nextCoachIndex++;
+                        if (nextCoachIndex >= coaches.length) {
+                            nextCoachIndex = 0;
+                        }
+                        continue; // try giving player to next coach
+                    }
+    
+                    coach.players.push(player);
+                    nextCoachIndex++;
+                    if (nextCoachIndex >= coaches.length) {
+                        nextCoachIndex = 0;
+                    }
+                    playerAssigned = true;
+                    break;
+                }
+            }
+        });
+
+        // Go through each coach and clear out assigned list
+        coaches.forEach(coach => {
+            coach.assigned.forEach(assignedPlayer => {
+                coach.players.push(assignedPlayer);
+            });
         });
 
         console.log(coaches);
 
         // Update the coaches teams section
         let coachesTeamsHtml = '';
+        const playersAssignedToTeams = [];
         coaches.forEach(coach => {
             let totalScore = 0;
+            let totalPlayers = 0;
             let playersHtml = '';
             coach.players.forEach(player => {
+                totalPlayers++;
+                playersAssignedToTeams.push(player);
                 totalScore += player.averageScore;
                 playersHtml += `
                     <tr>
@@ -409,6 +492,10 @@ $(document).ready(function() {
                                 <td><strong>Total Score</strong></td>
                                 <td><strong>${totalScore.toFixed(2)}</strong></td>
                             </tr>
+                            <tr>
+                                <td><strong>Total Players</strong></td>
+                                <td><strong>${totalPlayers}</strong></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -416,6 +503,26 @@ $(document).ready(function() {
         });
 
         $('#naiveAssignments').html(coachesTeamsHtml);
+
+        let playersInLeague = [];
+        $('#playersTable tbody tr').each(function() {
+            const name = $(this).find('.player-name').text().trim();
+            const id = $(this).data('id');
+            const averageScore = $(this).find('.average-score').text().trim();
+            playersInLeague.push({ name: name, id: id, averageScore: parseFloat(averageScore) });
+        });
+
+        // Find unassigned players
+        const unassignedPlayers = playersInLeague.filter(player => {
+            return !playersAssignedToTeams.some(assignedPlayer => assignedPlayer.id === player.id);
+        });
+        if (unassignedPlayers.length > 0) {
+            console.log('These players did not get assigned to a team:', unassignedPlayers);
+        } else {
+            console.log('All players were assigned to a team.');
+        }
+        console.log('totalPlayersInLeague', playersInLeague.length);
+        console.log('totalPlayersAssignedToTeams', playersAssignedToTeams.length);
     });
 
     function focusCell(cell) {

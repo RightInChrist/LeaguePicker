@@ -72,6 +72,9 @@ $(document).ready(function() {
                     <button class="btn btn-sm btn-secondary move-up">↑</button>
                     <button class="btn btn-sm btn-secondary move-down">↓</button>
                 </td>
+                <td>
+                    <button class="remove-coach-btn btn btn-danger btn-sm">X</button>
+                </td>
             </tr>
         `);
     }
@@ -103,6 +106,9 @@ $(document).ready(function() {
                 <td>
                     <button class="btn btn-sm btn-secondary move-up">↑</button>
                     <button class="btn btn-sm btn-secondary move-down">↓</button>
+                </td>
+                <td>
+                    <button class="remove-player-btn btn btn-danger btn-sm">X</button>
                 </td>
             </tr>
         `);
@@ -150,6 +156,9 @@ $(document).ready(function() {
             <tr data-player-id=${playerId} data-coach-id=${coachId} data-player-name=${playerName} data-coach-name=${coachName}>
                 <td>${playerName}</td>
                 <td>${coachName}</td>
+                <td>
+                    <button class="remove-player-to-coach-btn btn btn-danger btn-sm">X</button>
+                </td>
             </tr>
         `);
     }
@@ -159,6 +168,9 @@ $(document).ready(function() {
             <tr data-player-one-id=${playerOneId} data-player-two-id=${playerTwoId} data-player-one-name=${playerOneName} data-player-two-name=${playerTwoName}>
                 <td>${playerOneName}</td>
                 <td>${playerTwoName}</td>
+                <td>
+                    <button class="remove-player-to-player-btn btn btn-danger btn-sm">X</button>
+                </td>
             </tr>
         `);
     }
@@ -325,6 +337,7 @@ $(document).ready(function() {
         localStorage.setItem('assignedPlayersToPlayers', JSON.stringify(assignedPlayersToPlayers));
         if (!skipUpdates) {
             updateSections();
+            populateSelectors();
         }
     }
 
@@ -687,4 +700,37 @@ $(document).ready(function() {
     // Initialize selectors
     populateSelectors();
 
+    $('#closeBannerButton').click(function() {
+        $('#banner').fadeOut();
+    });
+
+    $('.remove-coach-btn').click(function() {
+        const coachId = $(this).closest('tr').data('id');
+        $(`tr[data-id=${coachId}]`).remove();
+        $(`tr[data-coach-id=${coachId}]`).remove();
+        saveToLocalStorage();
+    });
+
+    $('.remove-player-btn').click(function() {
+        const playerId = $(this).closest('tr').data('id');
+        $(`tr[data-id=${playerId}]`).remove();
+        $(`tr[data-player-id=${playerId}]`).remove();
+        $(`tr[data-player-one-id=${playerId}]`).remove();
+        $(`tr[data-player-two-id=${playerId}]`).remove();
+        saveToLocalStorage();
+    });
+
+    $('.remove-player-to-coach-btn').click(function() {
+        const playerId = $(this).closest('tr').data('player-id');
+        const coachId = $(this).closest('tr').data('coach-id');
+        $(`tr[data-player-id=${playerId}][data-coach-id=${coachId}]`).remove();
+        saveToLocalStorage();
+    });
+
+    $('.remove-player-to-player-btn').click(function() {
+        const playerOneId = $(this).closest('tr').data('player-one-id');
+        const playerTwoId = $(this).closest('tr').data('player-two-id');
+        $(`tr[data-player-one-id=${playerOneId}][data-player-two-id=${playerTwoId}]`).remove();
+        saveToLocalStorage();
+    });
 });

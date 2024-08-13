@@ -733,4 +733,13 @@ $(document).ready(function() {
         $(`tr[data-player-one-id=${playerOneId}][data-player-two-id=${playerTwoId}]`).remove();
         saveToLocalStorage();
     });
+
+    $('#clearAllLocalData').click(function() {
+        $('#clearAllLocalDataConfirm').removeClass('hidden');
+    });
+
+    $('#clearAllLocalDataConfirm').click(function() {
+        localStorage.clear();
+        window.location.reload();
+    });
 });

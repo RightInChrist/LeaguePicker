@@ -747,4 +747,114 @@ $(document).ready(function() {
         localStorage.clear();
         window.location.reload();
     });
+
+    // ── Backup / restore ──────────────────────────────────────────
+    // Everything lives in localStorage, which the OS can evict; export
+    // is the recovery path and the move-to-another-device path. Import
+    // replaces all five keys atomically after a two-step confirm
+    // (mirroring Clear All). No native confirm() dialogs — they are
+    // auto-dismissed by browser automation, which would make the evals
+    // blind to this flow.
+    const BACKUP_KEYS = ['coaches', 'players', 'scores',
+        'assignedPlayersToCoaches', 'assignedPlayersToPlayers'];
+    // Required string fields per key — import rejects rows missing them.
+    const BACKUP_SHAPE = {
+        coaches: ['id', 'name'],
+        players: ['id', 'name'],
+        scores: ['playerId', 'coachId'],
+        assignedPlayersToCoaches: ['playerId', 'coachId'],
+        assignedPlayersToPlayers: ['playerOneId', 'playerTwoId'],
+    };
+
+    function setBackupStatus(message) {
+        $('#backupStatus').text(message);
+    }
+
+    function parseBackup(raw) {
+        let parsed;
+        try {
+            parsed = JSON.parse(raw);
+        } catch (e) {
+            return { error: 'not valid JSON.' };
+        }
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            return { error: 'expected a backup object.' };
+        }
+        const data = {};
+        for (const key of BACKUP_KEYS) {
+            const rows = parsed[key] === undefined ? [] : parsed[key];
+            if (!Array.isArray(rows)) {
+                return { error: '"' + key + '" must be a list.' };
+            }
+            for (const row of rows) {
+                for (const field of BACKUP_SHAPE[key]) {
+                    if (!row || typeof row[field] !== 'string' || row[field] === '') {
+                        return { error: 'a "' + key + '" row is missing "' + field + '".' };
+                    }
+                }
+            }
+            data[key] = rows;
+        }
+        return { data: data };
+    }
+
+    $('#exportData').click(function() {
+        const backup = { app: 'leaguepicker', version: 1 };
+        BACKUP_KEYS.forEach(key => {
+            backup[key] = JSON.parse(localStorage.getItem(key) || '[]');
+        });
+        const json = JSON.stringify(backup, null, 2);
+        $('#backupText').val(json);
+
+        const link = document.getElementById('exportDownload');
+        const blob = new Blob([json], { type: 'application/json' });
+        link.href = URL.createObjectURL(blob);
+        link.download = 'leaguepicker-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+        setBackupStatus('Backup exported — keep the downloaded file (or the text above) somewhere safe.');
+    });
+
+    $('#importFile').on('change', function() {
+        const file = this.files && this.files[0];
+        if (!file) {
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function() {
+            $('#backupText').val(String(reader.result));
+            $('#importDataConfirm').addClass('hidden');
+            setBackupStatus('File loaded — click Import to replace your current data.');
+        };
+        reader.readAsText(file);
+    });
+
+    // Editing the textarea invalidates a pending confirm.
+    $('#backupText').on('input', function() {
+        $('#importDataConfirm').addClass('hidden');
+    });
+
+    $('#importData').click(function() {
+        const result = parseBackup($('#backupText').val());
+        if (result.error) {
+            $('#importDataConfirm').addClass('hidden');
+            setBackupStatus('Import failed: ' + result.error);
+            return;
+        }
+        $('#importDataConfirm').removeClass('hidden');
+        setBackupStatus('This replaces ALL current data. Click confirm to proceed.');
+    });
+
+    $('#importDataConfirm').click(function() {
+        const result = parseBackup($('#backupText').val());
+        if (result.error) {
+            $(this).addClass('hidden');
+            setBackupStatus('Import failed: ' + result.error);
+            return;
+        }
+        BACKUP_KEYS.forEach(key => {
+            localStorage.setItem(key, JSON.stringify(result.data[key]));
+        });
+        window.location.reload();
+    });
 });

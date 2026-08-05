@@ -4,13 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LeaguePicker</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Vendored (no CDNs): the app must work offline and StackPath's
+         CDN is shut down. Integrity of vendor/ files verified against
+         the published SRI hashes at vendoring time. -->
+    <link rel="stylesheet" href="vendor/bootstrap-4.5.2.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="banner" id="banner">
         <a href="https://github.com/RightInChrist/StandWithJesus">
-            <img src="https://raw.githubusercontent.com/RightInChrist/StandWithJesus/main/banner_luke_10-27_ESV.svg" alt="Luke 10:27 Banner" width="100%">
+            <img src="assets/banner_luke_10-27_ESV.svg" alt="Luke 10:27 Banner" width="100%">
         </a>
         <button id="closeBannerButton" class="btn btn-danger btn-sm" style="position: absolute; top: 10px; right: 10px;">X</button>
     </div>
@@ -37,6 +40,29 @@
                 <div id="instructions" class="section">
                     <button id="clearAllLocalData" class="btn btn-primary">Clear All Data (with two step Confirmation)</button>
                     <button id="clearAllLocalDataConfirm" class="btn btn-danger hidden">Clear All Data (Confirm)</button>
+
+                    <!-- Backup / restore. All data lives in this browser's
+                         localStorage, which the OS may evict — export before
+                         draft night. Import intentionally mirrors the
+                         two-step Clear All confirmation. -->
+                    <div id="backup" class="sub-section">
+                        <h3>Backup</h3>
+                        <p>
+                            Everything (coaches, players, scores, assignments) is stored
+                            only in this browser. Export a backup before important days;
+                            import a backup to move to another device or recover.
+                        </p>
+                        <button id="exportData" class="btn btn-primary">Export Backup</button>
+                        <a id="exportDownload" class="hidden" href="#" download>backup</a>
+                        <textarea id="backupText" class="form-control" rows="6"
+                            placeholder="Exported backup appears here — copy it somewhere safe. To restore, paste a backup here (or choose a file) and click Import."></textarea>
+                        <div class="form-group">
+                            <input type="file" id="importFile" accept="application/json,.json">
+                        </div>
+                        <button id="importData" class="btn btn-primary">Import (Replace All Data)</button>
+                        <button id="importDataConfirm" class="btn btn-danger hidden">Import (Confirm — replaces everything)</button>
+                        <div id="backupStatus" role="status"></div>
+                    </div>
                     <h2>Instructions for League Director and Coaches</h2>
                     <div class="instructions-section sub-section">
                         <h3>For the League Director:</h3>
@@ -220,7 +246,7 @@
             </main>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="vendor/jquery-3.6.0.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

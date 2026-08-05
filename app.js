@@ -10,6 +10,19 @@ $(document).ready(function() {
         });
     }
 
+    // Names are user input rendered into HTML strings; escape them so a
+    // name like O'Brien <b>Jr</b> displays literally instead of being
+    // parsed as markup, and always wrap attribute values in quotes so
+    // spaces survive the save/load round-trip.
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     // Load data from local storage on page load
     loadFromLocalStorage();
 
@@ -66,8 +79,8 @@ $(document).ready(function() {
 
     function addToCoachesTable(name, id) {
         $('#coachesTable tbody').append(`
-            <tr data-id=${id}>
-                <td class="coach-name" contenteditable="true">${name}</td>
+            <tr data-id="${escapeHtml(id)}">
+                <td class="coach-name" contenteditable="true">${escapeHtml(name)}</td>
                 <td>
                     <button class="btn btn-sm btn-secondary move-up">↑</button>
                     <button class="btn btn-sm btn-secondary move-down">↓</button>
@@ -100,8 +113,8 @@ $(document).ready(function() {
 
     function addToPlayersTable(name, id) {
         $('#playersTable tbody').append(`
-            <tr data-id="${id}">
-                <td class="player-name" contenteditable="true">${name}</td>
+            <tr data-id="${escapeHtml(id)}">
+                <td class="player-name" contenteditable="true">${escapeHtml(name)}</td>
                 <td class="average-score">unknown</td>
                 <td>
                     <button class="btn btn-sm btn-secondary move-up">↑</button>
@@ -153,9 +166,9 @@ $(document).ready(function() {
 
     function addToAssignPlayerToCoachTable(playerName, playerId, coachName, coachId) {
         $('#playersToCoachesTable tbody').append(`
-            <tr data-player-id=${playerId} data-coach-id=${coachId} data-player-name=${playerName} data-coach-name=${coachName}>
-                <td>${playerName}</td>
-                <td>${coachName}</td>
+            <tr data-player-id="${escapeHtml(playerId)}" data-coach-id="${escapeHtml(coachId)}" data-player-name="${escapeHtml(playerName)}" data-coach-name="${escapeHtml(coachName)}">
+                <td>${escapeHtml(playerName)}</td>
+                <td>${escapeHtml(coachName)}</td>
                 <td>
                     <button class="remove-player-to-coach-btn btn btn-danger btn-sm">X</button>
                 </td>
@@ -165,9 +178,9 @@ $(document).ready(function() {
 
     function addToAssignPlayerToPlayerTable(playerOneName, playerOneId, playerTwoName, playerTwoId) {
         $('#playersToPlayersTable tbody').append(`
-            <tr data-player-one-id=${playerOneId} data-player-two-id=${playerTwoId} data-player-one-name=${playerOneName} data-player-two-name=${playerTwoName}>
-                <td>${playerOneName}</td>
-                <td>${playerTwoName}</td>
+            <tr data-player-one-id="${escapeHtml(playerOneId)}" data-player-two-id="${escapeHtml(playerTwoId)}" data-player-one-name="${escapeHtml(playerOneName)}" data-player-two-name="${escapeHtml(playerTwoName)}">
+                <td>${escapeHtml(playerOneName)}</td>
+                <td>${escapeHtml(playerTwoName)}</td>
                 <td>
                     <button class="remove-player-to-player-btn btn btn-danger btn-sm">X</button>
                 </td>
@@ -227,7 +240,7 @@ $(document).ready(function() {
     // Update table headers
     let headersHtml = `<th>Player Name</th>`;
     coaches.forEach(coach => {
-        headersHtml += `<th>${coach.name}</th>`;
+        headersHtml += `<th>${escapeHtml(coach.name)}</th>`;
     });
     
     if ($('#scoresTable thead').length === 0) {
@@ -250,11 +263,11 @@ $(document).ready(function() {
 
     players.forEach(player => {
         if (!existingPlayerIds.includes(player.id)) {
-            let rowHtml = `<tr data-id="${player.id}"><td class="player-name">${player.name}</td>`;
+            let rowHtml = `<tr data-id="${escapeHtml(player.id)}"><td class="player-name">${escapeHtml(player.name)}</td>`;
 
             coaches.forEach(coach => {
                 const score = getScore(player.id, coach.id);
-                rowHtml += `<td contenteditable="true" data-coach-id="${coach.id}" data-player-id="${player.id}">${score}</td>`;
+                rowHtml += `<td contenteditable="true" data-coach-id="${escapeHtml(coach.id)}" data-player-id="${escapeHtml(player.id)}">${escapeHtml(score)}</td>`;
             });
             rowHtml += '</tr>';
             $('#scoresTable tbody').append(rowHtml);
@@ -368,107 +381,113 @@ $(document).ready(function() {
         $('#coachesTable tbody tr').each(function() {
             const name = $(this).find('.coach-name').text().trim();
             const id = $(this).data('id');
-            coaches.push({ name: name, id: id, players: [], assigned: [] });
+            coaches.push({ name: name, id: id, players: [] });
         });
 
-        let players = [];
+        if (coaches.length === 0) {
+            $('#naiveAssignments').html('<p>Add at least one coach before assigning teams.</p>');
+            return;
+        }
+
+        // Players with no valid scores draft at 0 so totals stay numeric.
+        const roster = [];
         $('#playersTable tbody tr').each(function() {
             const name = $(this).find('.player-name').text().trim();
             const id = $(this).data('id');
-            const averageScore = $(this).find('.average-score').text().trim();
-            players.push({ name: name, id: id, averageScore: parseFloat(averageScore) });
+            const averageScore = parseFloat($(this).find('.average-score').text().trim());
+            roster.push({ name: name, id: id, averageScore: Number.isFinite(averageScore) ? averageScore : 0 });
         });
 
-        // Sort players by average score (descending)
-        players.sort((a, b) => b.averageScore - a.averageScore);
+        const playerById = new Map(roster.map(p => [p.id, p]));
+        const coachById = new Map(coaches.map(c => [c.id, c]));
+        const placed = new Set();
 
-        // Function to assign a player to a coach
-        function assignPlayerToCoach(player, coach) {
-            console.log('assignPlayerToCoach', player.name, coach.name);
-            coach.assigned.push(player);
+        function place(player, coach) {
+            if (!player || !coach || placed.has(player.id)) {
+                return;
+            }
+            coach.players.push(player);
+            placed.add(player.id);
         }
 
+        // 1) Manual player->coach picks are fixed. Stale rows referencing
+        //    removed players/coaches are skipped rather than crashing.
+        const manualCoachByPlayer = new Map();
         $('#playersToCoachesTable tbody tr').each(function() {
-            const playerId = $(this).data('player-id');
-            const coachId = $(this).data('coach-id');
-            const coach = coaches.find(c => c.id === coachId);
-            const player = players.find(p => p.id === playerId);
-            assignPlayerToCoach(player, coach);
-            players = players.filter(p => p.id !== player.id); // Remove assigned child from players list
+            const player = playerById.get($(this).data('player-id'));
+            const coach = coachById.get($(this).data('coach-id'));
+            if (player && coach) {
+                manualCoachByPlayer.set(player.id, coach);
+                place(player, coach);
+            }
         });
 
-        const assignedPlayersToPlayers = new Map();
+        // 2) Keep-together pairs, merged into groups (a<->b, b<->c form one
+        //    group of three). A group with a manually assigned member joins
+        //    that member's coach; otherwise it goes to the smallest team.
+        const groupByPlayer = new Map();
         $('#playersToPlayersTable tbody tr').each(function() {
-            const playerOneId = $(this).data('player-one-id');
-            const playerTwoId = $(this).data('player-two-id');
-            const playerOne = players.find(p => p.id === playerOneId);
-            const playerTwo = players.find(p => p.id === playerTwoId);
-        
-            if (!assignedPlayersToPlayers.has(playerOneId)) {
-                assignedPlayersToPlayers.set(playerOneId, [playerOne, playerTwo]);
+            const one = playerById.get($(this).data('player-one-id'));
+            const two = playerById.get($(this).data('player-two-id'));
+            if (!one || !two || one.id === two.id) {
+                return;
+            }
+            const groupOne = groupByPlayer.get(one.id);
+            const groupTwo = groupByPlayer.get(two.id);
+            if (groupOne && groupTwo) {
+                if (groupOne !== groupTwo) {
+                    groupTwo.forEach(p => {
+                        groupOne.push(p);
+                        groupByPlayer.set(p.id, groupOne);
+                    });
+                }
+            } else if (groupOne) {
+                groupOne.push(two);
+                groupByPlayer.set(two.id, groupOne);
+            } else if (groupTwo) {
+                groupTwo.push(one);
+                groupByPlayer.set(one.id, groupTwo);
             } else {
-                const existingGroup = assignedPlayersToPlayers.get(playerOneId);
-                if (!existingGroup.find(p => p.id === playerTwoId)) {
-                    existingGroup.push(playerTwo);
-                }
-            }
-        });
-        
-        assignedPlayersToPlayers.forEach((siblingGroup) => {
-            let minPlayersCount = Math.min(...coaches.map(coach => coach.players.length));
-            let availableCoaches = coaches.filter(coach => coach.players.length === minPlayersCount);
-
-            const randomCoachIndex = Math.floor(Math.random() * availableCoaches.length);
-            const selectedCoach = availableCoaches[randomCoachIndex];
-        
-            // Assign the sibling group to the selected coach
-            siblingGroup.forEach(sibling => {
-                assignPlayerToCoach(sibling, selectedCoach);
-                players = players.filter(p => p.id !== sibling.id); // Remove assigned sibling from players list
-            });
-        });
-
-        // Assign the remaining players to coaches
-        let nextCoachIndex = 0;
-        players.forEach(player => {
-            let playerAssigned = false;
-            while (!playerAssigned) {
-                for (let i = nextCoachIndex; i < coaches.length; i++) {
-                    const coach = coaches[i];
-    
-                    // Check if there's a higher scored player in the assigned list
-                    const higherScorePlayerIndex = coach.assigned.findIndex(p => p.averageScore > player.averageScore);
-                    if (higherScorePlayerIndex !== -1) {
-                        // Swap the player with the higher scored player
-                        const higherScorePlayer = coach.assigned[higherScorePlayerIndex];
-                        coach.assigned.splice(higherScorePlayerIndex, 1); // Remove higher scored player from assigned list
-                        coach.players.push(higherScorePlayer); // Reinsert higher scored player back into the players list
-                        nextCoachIndex++;
-                        if (nextCoachIndex >= coaches.length) {
-                            nextCoachIndex = 0;
-                        }
-                        continue; // try giving player to next coach
-                    }
-    
-                    coach.players.push(player);
-                    nextCoachIndex++;
-                    if (nextCoachIndex >= coaches.length) {
-                        nextCoachIndex = 0;
-                    }
-                    playerAssigned = true;
-                    break;
-                }
+                const group = [one, two];
+                groupByPlayer.set(one.id, group);
+                groupByPlayer.set(two.id, group);
             }
         });
 
-        // Go through each coach and clear out assigned list
-        coaches.forEach(coach => {
-            coach.assigned.forEach(assignedPlayer => {
-                coach.players.push(assignedPlayer);
-            });
+        const smallestTeam = () => coaches.reduce((min, c) => c.players.length < min.players.length ? c : min);
+
+        const seenGroups = new Set();
+        groupByPlayer.forEach(group => {
+            if (seenGroups.has(group)) {
+                return;
+            }
+            seenGroups.add(group);
+            const anchor = group.find(p => manualCoachByPlayer.has(p.id));
+            const coach = anchor ? manualCoachByPlayer.get(anchor.id) : smallestTeam();
+            group.forEach(p => place(p, coach));
         });
 
-        console.log(coaches);
+        // 3) Everyone else, highest score first, onto the team with the
+        //    lowest total score (ties broken by fewest players) so manual
+        //    picks and sibling groups are balanced around, not ignored.
+        const teamTotal = c => c.players.reduce((sum, p) => sum + p.averageScore, 0);
+        roster
+            .filter(p => !placed.has(p.id))
+            .sort((a, b) => b.averageScore - a.averageScore)
+            .forEach(player => {
+                const coach = coaches.reduce((best, c) => {
+                    const bestTotal = teamTotal(best);
+                    const candidateTotal = teamTotal(c);
+                    if (candidateTotal < bestTotal) {
+                        return c;
+                    }
+                    if (candidateTotal === bestTotal && c.players.length < best.players.length) {
+                        return c;
+                    }
+                    return best;
+                });
+                place(player, coach);
+            });
 
         // Update the coaches teams section
         let coachesTeamsHtml = '';
@@ -483,15 +502,15 @@ $(document).ready(function() {
                 totalScore += player.averageScore;
                 playersHtml += `
                     <tr>
-                        <td>${player.name}</td>
-                        <td>${player.averageScore}</td>
+                        <td>${escapeHtml(player.name)}</td>
+                        <td>${player.averageScore.toFixed(2)}</td>
                     </tr>
                 `;
             });
 
             coachesTeamsHtml += `
                 <div class="coach-team sub-section">
-                    <h4>${coach.name}</h4>
+                    <h4>${escapeHtml(coach.name)}</h4>
                     <table class="table mt-3">
                         <thead>
                             <tr>
@@ -517,25 +536,8 @@ $(document).ready(function() {
 
         $('#naiveAssignments').html(coachesTeamsHtml);
 
-        let playersInLeague = [];
-        $('#playersTable tbody tr').each(function() {
-            const name = $(this).find('.player-name').text().trim();
-            const id = $(this).data('id');
-            const averageScore = $(this).find('.average-score').text().trim();
-            playersInLeague.push({ name: name, id: id, averageScore: parseFloat(averageScore) });
-        });
-
-        // Find unassigned players
-        const unassignedPlayers = playersInLeague.filter(player => {
-            return !playersAssignedToTeams.some(assignedPlayer => assignedPlayer.id === player.id);
-        });
-        if (unassignedPlayers.length > 0) {
-            console.log('These players did not get assigned to a team:', unassignedPlayers);
-        } else {
-            console.log('All players were assigned to a team.');
-        }
-        console.log('totalPlayersInLeague', playersInLeague.length);
-        console.log('totalPlayersAssignedToTeams', playersAssignedToTeams.length);
+        // Every roster player is placed by construction (manual, group, or
+        // balance pass), so no unassigned-player reconciliation is needed.
     });
 
     function focusCell(cell) {
@@ -668,13 +670,13 @@ $(document).ready(function() {
         siblingSelect.empty();
 
         players.forEach(player => {
-            playerSelect.append(`<option value="${player.id}">${player.name}</option>`);
-            playerSelectSibling.append(`<option value="${player.id}">${player.name}</option>`);
-            siblingSelect.append(`<option value="${player.id}">${player.name}</option>`);
+            playerSelect.append(`<option value="${escapeHtml(player.id)}">${escapeHtml(player.name)}</option>`);
+            playerSelectSibling.append(`<option value="${escapeHtml(player.id)}">${escapeHtml(player.name)}</option>`);
+            siblingSelect.append(`<option value="${escapeHtml(player.id)}">${escapeHtml(player.name)}</option>`);
         });
 
         coaches.forEach(coach => {
-            coachSelect.append(`<option value="${coach.id}">${coach.name}</option>`);
+            coachSelect.append(`<option value="${escapeHtml(coach.id)}">${escapeHtml(coach.name)}</option>`);
         });
     }
 
@@ -704,33 +706,36 @@ $(document).ready(function() {
         $('#banner').fadeOut();
     });
 
-    $('.remove-coach-btn').click(function() {
+    // Delegated handlers: rows are added dynamically after page load, so
+    // binding directly to the buttons present at ready-time leaves every
+    // later-added row with a dead X button.
+    $(document).on('click', '.remove-coach-btn', function() {
         const coachId = $(this).closest('tr').data('id');
-        $(`tr[data-id=${coachId}]`).remove();
-        $(`tr[data-coach-id=${coachId}]`).remove();
+        $(`tr[data-id="${coachId}"]`).remove();
+        $(`tr[data-coach-id="${coachId}"]`).remove();
         saveToLocalStorage();
     });
 
-    $('.remove-player-btn').click(function() {
+    $(document).on('click', '.remove-player-btn', function() {
         const playerId = $(this).closest('tr').data('id');
-        $(`tr[data-id=${playerId}]`).remove();
-        $(`tr[data-player-id=${playerId}]`).remove();
-        $(`tr[data-player-one-id=${playerId}]`).remove();
-        $(`tr[data-player-two-id=${playerId}]`).remove();
+        $(`tr[data-id="${playerId}"]`).remove();
+        $(`tr[data-player-id="${playerId}"]`).remove();
+        $(`tr[data-player-one-id="${playerId}"]`).remove();
+        $(`tr[data-player-two-id="${playerId}"]`).remove();
         saveToLocalStorage();
     });
 
-    $('.remove-player-to-coach-btn').click(function() {
+    $(document).on('click', '.remove-player-to-coach-btn', function() {
         const playerId = $(this).closest('tr').data('player-id');
         const coachId = $(this).closest('tr').data('coach-id');
-        $(`tr[data-player-id=${playerId}][data-coach-id=${coachId}]`).remove();
+        $(`tr[data-player-id="${playerId}"][data-coach-id="${coachId}"]`).remove();
         saveToLocalStorage();
     });
 
-    $('.remove-player-to-player-btn').click(function() {
+    $(document).on('click', '.remove-player-to-player-btn', function() {
         const playerOneId = $(this).closest('tr').data('player-one-id');
         const playerTwoId = $(this).closest('tr').data('player-two-id');
-        $(`tr[data-player-one-id=${playerOneId}][data-player-two-id=${playerTwoId}]`).remove();
+        $(`tr[data-player-one-id="${playerOneId}"][data-player-two-id="${playerTwoId}"]`).remove();
         saveToLocalStorage();
     });
 

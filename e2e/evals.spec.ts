@@ -1,31 +1,8 @@
 import { test, expect, Page } from '@playwright/test';
+import { seed } from './helpers';
 
 // Evals for the bugs identified in review. Each test states the CORRECT
 // behavior, so it fails on the buggy code and passes once fixed.
-//
-// Seeding uses the app's own localStorage persistence format — the same
-// shape saveToLocalStorage() writes — injected before page scripts run.
-
-type Seed = {
-  coaches?: { name: string; id: string }[];
-  players?: { name: string; id: string }[];
-  scores?: { playerId: string; coachId: string; score: string }[];
-  assignedPlayersToCoaches?: {
-    playerName: string; playerId: string; coachName: string; coachId: string;
-  }[];
-  assignedPlayersToPlayers?: {
-    playerOneName: string; playerOneId: string; playerTwoName: string; playerTwoId: string;
-  }[];
-};
-
-async function seed(page: Page, data: Seed): Promise<void> {
-  await page.addInitScript((d: Record<string, unknown>) => {
-    for (const [key, value] of Object.entries(d)) {
-      localStorage.setItem(key, JSON.stringify(value));
-    }
-  }, data as Record<string, unknown>);
-  await page.goto('/');
-}
 
 // Parse the rendered team blocks under #naiveAssignments.
 async function readTeams(page: Page) {
